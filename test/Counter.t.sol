@@ -15,9 +15,15 @@ contract CounterTest is Test {
     function test_Increment() public {
         counter.increment();
         assertEq(counter.number(), 1);
+
+        // counter.increment();
+        // assertEq(counter.number(), 2);
+
+        console.log("Block number", block.number);
     }
 
     function testFuzz_SetNumber(uint256 x) public {
+        assertEq(counter.number(), 0);  // 上一次的测试不会影响下一次的测试
         counter.setNumber(x);
         assertEq(counter.number(), x);
     }
