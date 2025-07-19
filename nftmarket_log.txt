@@ -1,0 +1,20 @@
+forge test test/NFTMarket.t.sol
+[⠊] Compiling...
+[⠃] Compiling 4 files with Solc 0.8.30
+[⠊] Solc 0.8.30 finished in 2.98s
+Compiler run successful!
+
+Ran 10 tests for test/NFTMarket.t.sol:NFTMarketTest
+[PASS] testBuyNFT_Fail_AlreadyPurchased() (gas: 135350)
+[PASS] testBuyNFT_Fail_InsufficientAllowance() (gas: 132527)
+[PASS] testBuyNFT_Fail_SelfPurchase() (gas: 110687)
+[PASS] testBuyNFT_Success() (gas: 149955)
+[PASS] testFuzz_ListAndBuy(uint256,address) (runs: 259, μ: 187011, ~: 187018)
+[PASS] testFuzz__invariant(uint256,address) (runs: 259, μ: 190065, ~: 190064)
+[PASS] testList_Fail_AlreadyListed() (gas: 105281)
+[PASS] testList_Fail_NotOwner() (gas: 19577)
+[PASS] testList_Fail_ZeroPrice() (gas: 19364)
+[PASS] testList_Success() (gas: 113661)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 34.17ms (65.84ms CPU time)
+
+Ran 1 test suite in 248.85ms (34.17ms CPU time): 10 tests passed, 0 failed, 0 skipped (10 total tests)
