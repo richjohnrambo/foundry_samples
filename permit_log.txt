@@ -1,0 +1,18 @@
+TokenBank permitDeposit 执行日志
+[PASS] testPermitDeposit() (gas: 131411)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 7.16ms (1.75ms CPU time)
+
+Ran 1 test suite in 1.98s (7.16ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+
+NFT permitBuy 执行日志
+Ran 1 test for test/NFTMarket.t.sol:NFTMarketTest
+[PASS] testPermitBuy() (gas: 186474)
+Logs:
+  Expected ownerAddr for Whitelist: 0x7c8999dC9a822c1f0Df42023113EDB4FDd543266
+  Recovered signer from Whitelist (in Test): 0x7c8999dC9a822c1f0Df42023113EDB4FDd543266
+  Expected buyerAddr for Permit: 0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02
+  Recovered signer from Permit (in Test): 0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02
+  Chain ID: 31337
+  Recovered whitelist signer: 0x7c8999dC9a822c1f0Df42023113EDB4FDd543266
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 9.67ms (3.09ms CPU time)
