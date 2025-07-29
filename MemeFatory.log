@@ -1,0 +1,12 @@
+superysh@superyshdeMacBook-Pro foundry_samples % forge test --match-path test/MemeFactory.t.sol
+[⠊] Compiling...
+No files changed, compilation skipped
+
+Ran 4 tests for test/MemeFactory.t.sol:MemeFactoryTest
+[PASS] testDeployMeme() (gas: 845423)
+[PASS] testExceedTotalSupply() (gas: 996355)
+[PASS] testFeeDistribution() (gas: 978915)
+[PASS] testMintMeme() (gas: 983058)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 2.82ms (4.32ms CPU time)
+
+Ran 1 test suite in 214.84ms (2.82ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)
