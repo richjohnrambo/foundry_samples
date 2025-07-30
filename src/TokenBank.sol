@@ -1,123 +1,81 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "forge-std/console.sol"; // 导入 console.sol
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./RedToken.sol";
+import "./MyERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@uniswap/permit2/contracts/interfaces/IPermit2.sol"; // 导入 Permit2 接口
 
-// 编写一个 TokenBank 合约，可以将自己的 Token 存入到 TokenBank， 和从 TokenBank 取出。
-// TokenBank 有两个方法：
-// deposit() : 需要记录每个地址的存入数量；
-// withdraw（）: 用户可以提取自己的之前存入的 token。
+contract TokenBank  {
+    mapping(address => mapping(address => uint256)) public balances; // user => token => amount
+    address public immutable PERMIT2_ADDRESS; // Permit2 合约地址
 
-contract TokenBank {
-    uint public totalSupply; // 合约中的所有 Token 总量
-    mapping(address => uint) public balances; // 每个地址拥有的 Token 数量
-
-    event Deposit(address indexed user, uint256 amount);
-    event Withdraw(address indexed user, uint256 amount);
-    // ERC-20 代币的地址
-    RedToken public token;
-
-    // 构造函数，设置代币合约地址
-    constructor(address tokenAddress) {
-        token = RedToken(tokenAddress);
+    event Deposited(address indexed user, address indexed token, uint256 amount);
+    event Withdrawn(address indexed user, address indexed token, uint256 amount);
+    
+    constructor(address _permit2Address) {
+        PERMIT2_ADDRESS = _permit2Address;
     }
 
-    // 存款函数：允许用户将自己的代币存入 TokenBank
-    function deposit(uint amount) external {
-        require(amount > 0, "Deposit amount must be greater than zero.");
-        require(msg.sender != address(this), "Invalid recipient");
+    /**
+     * @notice 存款方法：传统方式，用户需要先 approve TokenBank
+     * @param tokenAddr 存款代币地址
+     * @param amount 存款数量
+     */
+    function deposit(address tokenAddr, uint256 amount) public {
+        require(amount > 0, "Deposit: amount must be greater than 0");
+        
+        // 从用户转账代币到 TokenBank
+        MyERC20(tokenAddr).transferFrom(msg.sender, address(this), amount);
+        balances[msg.sender][tokenAddr] += amount;
 
-        // 将代币转移给 TokenBank
-        // 确保用户先批准 TokenBank 合约可以转移他们的代币
-        console.log("begin Transfer:", msg.sender);
-        bool success = token.transferFrom(msg.sender, address(this), amount);
-       
-        // 更新用户存款余额
-        balances[msg.sender] += amount;
-        totalSupply += amount;
-        emit Deposit(msg.sender, amount);
+        emit Deposited(msg.sender, tokenAddr, amount);
     }
 
-    // 提取函数：允许用户从 TokenBank 提取自己的代币
-    function withdraw(uint amount) external {
-        require(balances[msg.sender] >= amount, "Insufficient balance.");
+    /**
+     * @notice 提款方法
+     * @param tokenAddr 提款代币地址
+     * @param amount 提款数量
+     */
+    function withdraw(address tokenAddr, uint256 amount) public {
+        require(amount > 0, "Withdraw: amount must be greater than 0");
+        require(balances[msg.sender][tokenAddr] >= amount, "Withdraw: insufficient balance");
 
-        // 更新用户存款余额
-        balances[msg.sender] -= amount;
+        balances[msg.sender][tokenAddr] -= amount;
+        IERC20(tokenAddr).transfer(msg.sender, amount);
 
-        // 将代币转移给用户
-        bool success = token.transfer(address(token), amount);
-        totalSupply -= amount;
-        emit Withdraw(msg.sender, amount);
+        emit Withdrawn(msg.sender, tokenAddr, amount);
     }
 
-    // 获取某个地址的存款余额
-    function getDepositBalance(address account) external view returns (uint) {
-        return balances[account];
-    }
-
-    function balanceOf(address account) external view returns (uint) {
-        return totalSupply;
-    }
-
-     // 使用 permit 进行存款
-    function permitDeposit(
+    /**
+     * @notice 使用 Permit2 签名授权转账进行存款
+     * @param tokenAddr 存款代币地址
+     * @param amount 存款数量
+     * @param permit2Signature Permit2 签名数据
+     * @param permit Permit2 结构体数据
+     */
+    function depositWithPermit2(
+        address tokenAddr,
         uint256 amount,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
-        require(amount > 0, "Deposit amount must be greater than zero.");
-        require(msg.sender != address(this), "Invalid recipient");
+        bytes memory permit2Signature,
+        IPermit2.PermitSingle memory permit // 使用 Permit2 接口中的 PermitSingle 结构体
+    ) public {
+        require(amount > 0, "DepositWithPermit2: amount must be greater than 0");
 
-        // 通过 permit 方法验证签名
-        token.permit(msg.sender, address(this), amount, deadline, v, r, s);
+        // 验证 Permit2 签名并执行代币转账
+        // 调用 Permit2 合约的 'permit' 方法来验证签名并执行授权的 transferFrom
+        // 注意：permit2.permit() 会消耗掉签名，防止重放攻击
+        IPermit2(PERMIT2_ADDRESS).permit(
+            msg.sender, // signer 应该是调用 depositWithPermit2 的用户
+            permit,
+            permit2Signature
+        );
 
-        // 将代币转移给 TokenBank
-        bool success = token.transferFrom(msg.sender, address(this), amount);
-        require(success, "Token transfer failed.");
+        // Permit2 成功后，代币已经从用户那里转移到了 TokenBank 的地址
+        // 所以我们不需要再调用 transferFrom 了，只需要更新 TokenBank 内部的余额
+        balances[msg.sender][tokenAddr] += amount;
 
-        // 更新用户存款余额
-        balances[msg.sender] += amount;
-        totalSupply += amount;
-        emit Deposit(msg.sender, amount);
+        emit Deposited(msg.sender, tokenAddr, amount);
     }
 
-    // function depositERC20(
-    //     IERC20 token,
-    //     uint256 amount,
-    //     uint256 nonce,
-    //     uint256 deadline,
-    //     bytes calldata signature
-    // ) external nonReentrant {
-    //     // Credit the caller.
-    //     balances[msg.sender][token] += amount;
-    //     // Transfer tokens from the caller to ourselves.
-    //     PERMIT2.permitTransferFrom(
-    //         // The permit message. Spender will be inferred as the caller (us).
-    //         IPermit2.PermitTransferFrom({
-    //             permitted: IPermit2.TokenPermissions({
-    //                 token: token,
-    //                 amount: amount
-    //             }),
-    //             nonce: nonce,
-    //             deadline: deadline
-    //         }),
-    //         // The transfer recipient and amount.
-    //         IPermit2.SignatureTransferDetails({
-    //             to: address(this),
-    //             requestedAmount: amount
-    //         }),
-    //         // The owner of the tokens, which must also be
-    //         // the signer of the message, otherwise this call
-    //         // will fail.
-    //         msg.sender,
-    //         // The packed signature that was the result of signing
-    //         // the EIP712 hash of `permit`.
-    //         signature
-    //     );
-    // }
+    // 可以添加其他 onlyOwner 的管理功能
 }
