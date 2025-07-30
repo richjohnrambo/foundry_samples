@@ -1,0 +1,123 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "forge-std/console.sol"; // 导入 console.sol
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./RedToken.sol";
+
+// 编写一个 TokenBank 合约，可以将自己的 Token 存入到 TokenBank， 和从 TokenBank 取出。
+// TokenBank 有两个方法：
+// deposit() : 需要记录每个地址的存入数量；
+// withdraw（）: 用户可以提取自己的之前存入的 token。
+
+contract TokenBank {
+    uint public totalSupply; // 合约中的所有 Token 总量
+    mapping(address => uint) public balances; // 每个地址拥有的 Token 数量
+
+    event Deposit(address indexed user, uint256 amount);
+    event Withdraw(address indexed user, uint256 amount);
+    // ERC-20 代币的地址
+    RedToken public token;
+
+    // 构造函数，设置代币合约地址
+    constructor(address tokenAddress) {
+        token = RedToken(tokenAddress);
+    }
+
+    // 存款函数：允许用户将自己的代币存入 TokenBank
+    function deposit(uint amount) external {
+        require(amount > 0, "Deposit amount must be greater than zero.");
+        require(msg.sender != address(this), "Invalid recipient");
+
+        // 将代币转移给 TokenBank
+        // 确保用户先批准 TokenBank 合约可以转移他们的代币
+        console.log("begin Transfer:", msg.sender);
+        bool success = token.transferFrom(msg.sender, address(this), amount);
+       
+        // 更新用户存款余额
+        balances[msg.sender] += amount;
+        totalSupply += amount;
+        emit Deposit(msg.sender, amount);
+    }
+
+    // 提取函数：允许用户从 TokenBank 提取自己的代币
+    function withdraw(uint amount) external {
+        require(balances[msg.sender] >= amount, "Insufficient balance.");
+
+        // 更新用户存款余额
+        balances[msg.sender] -= amount;
+
+        // 将代币转移给用户
+        bool success = token.transfer(address(token), amount);
+        totalSupply -= amount;
+        emit Withdraw(msg.sender, amount);
+    }
+
+    // 获取某个地址的存款余额
+    function getDepositBalance(address account) external view returns (uint) {
+        return balances[account];
+    }
+
+    function balanceOf(address account) external view returns (uint) {
+        return totalSupply;
+    }
+
+     // 使用 permit 进行存款
+    function permitDeposit(
+        uint256 amount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        require(amount > 0, "Deposit amount must be greater than zero.");
+        require(msg.sender != address(this), "Invalid recipient");
+
+        // 通过 permit 方法验证签名
+        token.permit(msg.sender, address(this), amount, deadline, v, r, s);
+
+        // 将代币转移给 TokenBank
+        bool success = token.transferFrom(msg.sender, address(this), amount);
+        require(success, "Token transfer failed.");
+
+        // 更新用户存款余额
+        balances[msg.sender] += amount;
+        totalSupply += amount;
+        emit Deposit(msg.sender, amount);
+    }
+
+    // function depositERC20(
+    //     IERC20 token,
+    //     uint256 amount,
+    //     uint256 nonce,
+    //     uint256 deadline,
+    //     bytes calldata signature
+    // ) external nonReentrant {
+    //     // Credit the caller.
+    //     balances[msg.sender][token] += amount;
+    //     // Transfer tokens from the caller to ourselves.
+    //     PERMIT2.permitTransferFrom(
+    //         // The permit message. Spender will be inferred as the caller (us).
+    //         IPermit2.PermitTransferFrom({
+    //             permitted: IPermit2.TokenPermissions({
+    //                 token: token,
+    //                 amount: amount
+    //             }),
+    //             nonce: nonce,
+    //             deadline: deadline
+    //         }),
+    //         // The transfer recipient and amount.
+    //         IPermit2.SignatureTransferDetails({
+    //             to: address(this),
+    //             requestedAmount: amount
+    //         }),
+    //         // The owner of the tokens, which must also be
+    //         // the signer of the message, otherwise this call
+    //         // will fail.
+    //         msg.sender,
+    //         // The packed signature that was the result of signing
+    //         // the EIP712 hash of `permit`.
+    //         signature
+    //     );
+    // }
+}
