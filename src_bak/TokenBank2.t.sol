@@ -6,7 +6,7 @@ import "../src/TokenBank.sol";
 import "../src/RedToken.sol";
 
 contract TokenBankTest is Test {
-    TokenBank public tokenBank;
+    TokenBank2 public tokenBank;
     RedToken public redToken;
 
     address user;

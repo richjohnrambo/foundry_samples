@@ -34,8 +34,9 @@ contract NFTMarket is Ownable {
 
     // List an NFT for sale
     function list(uint256 tokenId, uint256 price) external {
-        require(nftContract.ownerOf(tokenId) == msg.sender, "You must own the NFT");
         require(price > 0, "Price must be greater than zero");
+        address owner = nftContract.ownerOf(tokenId);
+        require(nftContract.ownerOf(tokenId) == msg.sender, "You must own the NFT");
 
         // The seller must have approved the market contract to transfer their NFT
         // prior to calling this function.
@@ -52,10 +53,11 @@ contract NFTMarket is Ownable {
     // Buy an NFT
     function buyNFT(uint256 tokenId) external {
         Listing memory listing = listings[tokenId];
-        require(listing.price > 0, "This NFT is not for sale"); // Checks if it's listed
-
+        
         uint256 price = listing.price;
         address seller = listing.seller;
+
+        require(price > 0, "This NFT is not for sale"); // Checks if it's listed
 
         // Prevent self-purchase
         require(msg.sender != seller, "Cannot buy your own NFT");
