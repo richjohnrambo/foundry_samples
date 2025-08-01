@@ -350,4 +350,83 @@ contract AirdropMerkleNFTMarketTest is Test {
         bytes32[] memory invalidProof;
         assertFalse(market.verifyWhitelist(alice, invalidProof));
     }
+
+     function testMulticall_PermitAndClaim_Success() public {
+        // Step 1: Deployer lists an NFT
+        vm.startPrank(deployer);
+        market.listNFT(NFT_ID_1, NFT_PRICE);
+        vm.stopPrank();
+        
+        // Step 2: Alice prepares a permit and claim
+        vm.startPrank(alice);
+        
+        // Prepare parameters for permitPrePay
+        uint256 value = DISCOUNTED_PRICE;
+        uint256 deadline = block.timestamp + 1000;
+        
+        // Generate signature for permitPrePay
+        bytes32 structHash = keccak256(abi.encode(
+            keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
+            alice,
+            address(market),
+            value,
+            redToken.nonces(alice),
+            deadline
+        ));
+        
+        bytes32 digest = keccak256(abi.encodePacked(
+            "\x19\x01",
+            redToken.DOMAIN_SEPARATOR(),
+            structHash
+        ));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePrivateKey, digest);
+        
+        // Step 3: Encode the function calls
+        // Encode the permitPrePay call
+        bytes memory permitCallData = abi.encodeWithSelector(
+            market.permitPrePay.selector, 
+            value, 
+            deadline, 
+            v, 
+            r, 
+            s
+        );
+        
+        // Encode the claimNFT call
+        bytes memory claimCallData = abi.encodeWithSelector(
+            market.claimNFT.selector, 
+            proofAlice, 
+            NFT_ID_1
+        );
+        
+        // Step 4: Create a multicall array
+        bytes[] memory calls = new bytes[](2);
+        calls[0] = permitCallData;
+        calls[1] = claimCallData;
+        
+        // Step 5: Execute multicall and check state changes
+        uint256 initialAliceBalance = redToken.balanceOf(alice);
+        uint256 initialDeployerBalance = redToken.balanceOf(deployer);
+        
+        // Execute the multicall (a mock function in the test contract for demonstration)
+        // Note: The multicall function itself should be added to your main AirdropMerkleNFTMarket contract
+        // This is a simplified test implementation for demonstration purposes.
+        for (uint i = 0; i < calls.length; i++) {
+            // Here we use a low-level call to the market contract with the encoded data
+            (bool success, ) = address(market).call(calls[i]);
+            require(success, "Multicall failed");
+        }
+
+        // Step 6: Assert the final state
+        assertEq(redToken.allowance(alice, address(market)), 0, "Allowance should be used");
+        assertEq(redToken.balanceOf(alice), initialAliceBalance - DISCOUNTED_PRICE, "Alice's balance is incorrect");
+        assertEq(redToken.balanceOf(deployer), initialDeployerBalance + DISCOUNTED_PRICE, "Deployer's balance is incorrect");
+        assertEq(myNFT.ownerOf(NFT_ID_1), alice, "NFT owner is incorrect");
+
+        AirdropMerkleNFTMarket.NFTListing memory listing = market.getNFTListing(NFT_ID_1);
+        assertFalse(listing.isActive, "NFT should no longer be listed");
+        assertTrue(market.hasClaimed(alice), "Alice should be marked as claimed");
+
+        vm.stopPrank();
+    }
 }
