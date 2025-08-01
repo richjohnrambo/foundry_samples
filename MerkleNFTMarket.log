@@ -1,0 +1,25 @@
+forge test --match-path test/AirDropMerkleNFTMarket.t.sol                                  
+[⠊] Compiling...
+No files changed, compilation skipped
+
+Ran 17 tests for test/AirDropMerkleNFTMarket.t.sol:AirdropMerkleNFTMarketTest
+[PASS] testClaimNFT_AlreadyClaimedReverts() (gas: 190712)
+[PASS] testClaimNFT_InsufficientBalanceReverts() (gas: 171785)
+[PASS] testClaimNFT_NFTNotActiveReverts() (gas: 200790)
+[PASS] testClaimNFT_NFTNotListedReverts() (gas: 61295)
+[PASS] testClaimNFT_NotInWhitelistReverts() (gas: 136778)
+[PASS] testClaimNFT_Success_Alice() (gas: 201233)
+[PASS] testGetNFTListing_Existing() (gas: 89047)
+[PASS] testGetNFTListing_NonExisting() (gas: 16853)
+[PASS] testListNFT_NotNFTOwnerReverts() (gas: 18065)
+[PASS] testListNFT_PriceZeroReverts() (gas: 17522)
+[PASS] testListNFT_Success() (gas: 91425)
+[PASS] testMulticall_PermitAndClaim_Success() (gas: 235354)
+[PASS] testPermitPrePay_Success() (gas: 75327)
+[PASS] testUpdateMerkleRoot_NotOwnerReverts() (gas: 15133)
+[PASS] testUpdateMerkleRoot_Success() (gas: 25735)
+[PASS] testVerifyWhitelist_False() (gas: 25178)
+[PASS] testVerifyWhitelist_True() (gas: 21299)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 8.19ms (7.02ms CPU time)
+
+Ran 1 test suite in 130.96ms (8.19ms CPU time): 17 tests passed, 0 failed, 0 skipped (17 total tests)
