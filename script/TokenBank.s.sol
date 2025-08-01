@@ -10,9 +10,9 @@ contract DeployTokenBank is Script {
         // 开始广播交易
         vm.startBroadcast();
 
-        address paymentToken = 0x38A13792AE14dF9d6643C6F35B0B6F1dBA4D8ccd;
+        address permit2 = 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512;
 
-        TokenBank tokenBank = new TokenBank(paymentToken);
+        TokenBank tokenBank = new TokenBank(permit2);
 
         // 结束广播
         vm.stopBroadcast();

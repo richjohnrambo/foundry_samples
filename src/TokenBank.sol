@@ -77,5 +77,8 @@ contract TokenBank  {
         emit Deposited(msg.sender, tokenAddr, amount);
     }
 
-    // 可以添加其他 onlyOwner 的管理功能
+     // 新增的获取余额函数
+    function getBalance(address user, address token) public view returns (uint256) {
+        return balances[user][token];
+    }
 }
