@@ -4,6 +4,7 @@ out = "out"
 libs = ["lib"]
 via_ir = true
 optimizer = true
+evm_version = "prague"
 optimizer_runs = 200 # You can adjust this number
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
