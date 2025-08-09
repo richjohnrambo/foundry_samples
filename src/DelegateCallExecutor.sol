@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+
 /**
  * @title DelegateCallExecutor
  * @dev A contract that allows a signer to authorize and delegate a batch of calls.

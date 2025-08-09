@@ -1,0 +1,11 @@
+[PASS] testV2ListingWithSignature() (gas: 206523)
+Logs:
+  Alice's initial token balance: 100000000000000000000
+  Fallback called, target implementation: 0xF62849F9A0B5Bf2913b396098F7c7019b51A820a
+  Fallback called, target implementation: 0x5991A2dF15A8F6A256D3Ec51E99254Cd3fb576A9
+  NFT owner before listing: 0xe05fcC23807536bEe418f142D19fa0d21BB0cfF7 Expected seller: 0xe05fcC23807536bEe418f142D19fa0d21BB0cfF7
+  Fallback called, target implementation: 0x5991A2dF15A8F6A256D3Ec51E99254Cd3fb576A9
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.92ms (1.51ms CPU time)
+
+Ran 1 test suite in 99.93ms (2.92ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
